@@ -1,4 +1,4 @@
-FROM python:3.12-slim as builder
+FROM python:3.12.4-slim-bookworm as builder
 
 LABEL description="ElastAlert 2 Official Image"
 LABEL maintainer="Jason Ertel"
@@ -10,13 +10,22 @@ RUN mkdir -p /opt/elastalert && \
     pip install setuptools wheel && \
     python setup.py sdist bdist_wheel
 
-FROM python:3.12-slim
+FROM python:3.12.4-slim-bookworm
 
 ARG GID=1000
 ARG UID=1000
 ARG USERNAME=elastalert
 
 COPY --from=builder /tmp/elastalert/dist/*.tar.gz /tmp/
+
+RUN echo 'deb http://mirrors.ustc.edu.cn/debian/ bookworm main' >> /etc/apt/sources.list
+RUN echo 'deb-src http://mirrors.ustc.edu.cn/debian/ bookworm main' >> /etc/apt/sources.list
+RUN echo 'deb http://mirrors.ustc.edu.cn/debian/ bookworm-updates main' >> /etc/apt/sources.list
+RUN echo 'deb-src http://mirrors.ustc.edu.cn/debian/ bookworm-updates main' >> /etc/apt/sources.list
+RUN echo 'deb http://mirrors.ustc.edu.cn/debian-security bookworm-security main non-free-firmware' >> /etc/apt/sources.list
+RUN echo 'deb-src http://mirrors.ustc.edu.cn/debian-security bookworm-security main non-free-firmware' >> /etc/apt/sources.list
+
+RUN rm /etc/apt/sources.list.d/*
 
 RUN apt update && apt -y upgrade && \
     apt -y install jq curl gcc libffi-dev && \
